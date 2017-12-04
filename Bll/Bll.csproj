@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <AssemblyName>Threesixty.Dal.Bll</AssemblyName>
+    <RootNamespace>Threesixty.Dal.Bll</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Contracts\Contracts.csproj" />
+    <ProjectReference Include="..\Dal\Dll\Dll.csproj" />
+  </ItemGroup>
+
+</Project>
