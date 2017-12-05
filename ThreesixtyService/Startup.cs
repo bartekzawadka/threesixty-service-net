@@ -27,6 +27,7 @@ namespace ThreesixtyService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
             services.AddDbContext<ThreesixtyContext>(options =>
                 options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
             services.AddMvc();
@@ -42,6 +43,7 @@ namespace ThreesixtyService
 
             app.UseMiddleware(typeof(ExceptionMiddleware));
             app.Use(next => context => { context.Request.EnableRewind(); return next(context); });
+            app.UseCors(options => options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader());
             app.UseMvc();
         }
     }

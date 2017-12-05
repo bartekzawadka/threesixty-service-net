@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Threesixty.Common.Contracts;
+using Threesixty.Common.Contracts.Dto;
 using Threesixty.Dal.Bll;
 using Threesixty.Dal.Dll;
 using Threesixty.Dal.Dll.Models;
@@ -30,7 +31,7 @@ namespace ThreesixtyService.Controllers
 
         // GET: api/Image
         [HttpGet]
-        public IEnumerable<Image> Get([FromQuery]int skip, [FromQuery]int limit)
+        public PageableList<Image> Get([FromQuery]int skip, [FromQuery]int limit)
         {
             return _imageManager.GetImages(skip, limit);
         }
@@ -59,6 +60,31 @@ namespace ThreesixtyService.Controllers
             };
 
             return _imageManager.AddImage(item);
+        }
+
+        [HttpPost]
+        [Route("upload")]
+        public string Upload([FromForm] object form)
+        {
+            if (Request.Form?.Files == null || Request.Form.Files.Count == 0)
+            {
+                throw new ApiException("No file specified to be uploaded. No data received", HttpStatusCode.BadRequest);
+            }
+
+            try
+            {
+                Parallel.ForEach(Request.Form.Files, (file, state, arg3) =>
+                {
+                    _imageManager.AddImage(StrollerProcessor.ParseStrollerFile(file.OpenReadStream(), file.FileName));
+                });
+            }
+            catch (System.Exception e)
+            {
+                throw new ApiException("Stroller JSON file import failed: " + e.Message, e,
+                    HttpStatusCode.BadRequest);
+            }
+
+            return null;
         }
 
         
