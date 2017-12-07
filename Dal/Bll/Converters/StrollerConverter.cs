@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Threesixty.Common.Contracts;
 using Threesixty.Common.Contracts.Dto.Stroller;
+using Threesixty.Dal.Dll.Models;
 
-namespace Threesixty.Dal.Bll
+namespace Threesixty.Dal.Bll.Converters
 {
-    public class StrollerProcessor
+    public class StrollerConverter
     {
-        public static StrollerFileInfo ParseStrollerFile(Stream fileStream, string fileName)
+        public static StrollerFileInfo JsonStreamToStrollerFileInfo(Stream fileStream, string fileName)
         {
             if (fileStream == null)
                 throw new ApiException("Provided file stream is empty", HttpStatusCode.BadRequest);
@@ -52,7 +52,6 @@ namespace Threesixty.Dal.Bll
             }
 
             var chunks = (JArray) json["chunks"];
-            int indexNum;
 
             foreach (var job in chunks)
             {
@@ -66,7 +65,7 @@ namespace Threesixty.Dal.Bll
                         "Invalid Stroller file structure. Some chunks do not contain index number",
                         HttpStatusCode.BadRequest);
 
-                if (!int.TryParse(job["index"].ToString(), out indexNum))
+                if (!int.TryParse(job["index"].ToString(), out _))
                 {
                     throw new ApiException(
                         "Invalid Stroller file structure. Invalid index number for some chunks. Could not extract index value",
@@ -111,26 +110,42 @@ namespace Threesixty.Dal.Bll
                 }
             }
 
-            var name = string.Empty;
             if(string.IsNullOrEmpty(fileName))
                 return result;
 
             fileName = Path.GetFileNameWithoutExtension(fileName);
             var parts = fileName.Split(' ', '-', '_');
 
-            if (parts.Length > 0)
+            if (parts.Length <= 0) return result;
+            for (var i = 0; i < parts.Length; i++)
             {
-                for (var i = 0; i < parts.Length; i++)
-                {
-                    if (i == 0)
-                        parts[i] = parts[i].First().ToString().ToUpper() + parts[i].Substring(1);
-                }
-
-                name = String.Join(' ', parts);
-                result.Name = name;
+                if (i == 0)
+                    parts[i] = parts[i].First().ToString().ToUpper() + parts[i].Substring(1);
             }
 
+            var name = string.Join(' ', parts);
+            result.Name = name;
+
             return result;
+        }
+
+        public static StrollerFileInfo DbImageToStrollerFileInfo(Image image)
+        {
+            if (image == null)
+                return null;
+
+            return new StrollerFileInfo
+            {
+                Chunks = image.Chunks.Select(x => new StrollerChunkItem
+                {
+                    Index = x.Index,
+                    Data = x.Data
+                }).ToList(),
+                Name = image.Name,
+                Thumbnail = image.Thumbnail,
+                CreatedAt = image.CreatedAt,
+                Id = image.Id.ToString()
+            };
         }
     }
 }

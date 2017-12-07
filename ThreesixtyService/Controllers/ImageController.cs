@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,18 +12,24 @@ using Microsoft.Extensions.Configuration;
 using Threesixty.Common.Contracts;
 using Threesixty.Common.Contracts.Dto;
 using Threesixty.Dal.Bll;
+using Threesixty.Dal.Bll.Converters;
+using Threesixty.Dal.Bll.Mappers;
 using Threesixty.Dal.Dll;
 using Threesixty.Dal.Dll.Models;
+using System.Net.Http.Headers;
+using System.Net.Mime;
+using ThreesixtyService.Helpers;
 
 namespace ThreesixtyService.Controllers
 {
-    [Produces("application/json")]
     [Route("api/[controller]")]
     public class ImageController : Controller
     {
         public IConfiguration Configuration { get; }
 
         private ImageManager _imageManager;
+
+        public List<string> _downloadedFiles = new List<string>();
 
         public ImageController(IConfiguration configuration)
         {
@@ -30,6 +38,7 @@ namespace ThreesixtyService.Controllers
         }
 
         // GET: api/Image
+        [Produces("application/json")]
         [HttpGet]
         public PageableList<Image> Get([FromQuery]int skip, [FromQuery]int limit)
         {
@@ -37,13 +46,38 @@ namespace ThreesixtyService.Controllers
         }
 
         // GET: api/Image/5
+        [Produces("application/json")]
         [HttpGet("{id}")]
         public Image Get(int id)
         {
             return _imageManager.GetImage(id);
         }
-        
+
+        [HttpGet("{id}/download")]
+        public IActionResult Download(int id, [FromQuery] string format, [FromQuery]string fileName)
+        {
+            var filePath = _imageManager.GetStrollerImageFile(id, DownloadFileTypeMapper.GetFileType(format));
+
+            if (string.IsNullOrEmpty(format))
+            {
+                throw new ApiException("Invalid/unsupported file type", HttpStatusCode.BadRequest);
+            }
+
+            var fName = Path.GetFileName(filePath);
+            _downloadedFiles.Add(filePath);
+
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                fName = fileName + Path.GetExtension(filePath);
+            }
+            fName = fName.Replace(' ', '-');
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            return File(stream,
+                "application/octet-stream", fName);
+        }
+
         // POST: api/Image
+        [Produces("application/json")]
         [HttpPost]
         public Image Post([FromBody]Image image)
         {
@@ -63,6 +97,7 @@ namespace ThreesixtyService.Controllers
         }
 
         [HttpPost]
+        [Produces("application/json")]
         [Route("upload")]
         public string Upload([FromForm] object form)
         {
@@ -75,7 +110,7 @@ namespace ThreesixtyService.Controllers
             {
                 Parallel.ForEach(Request.Form.Files, (file, state, arg3) =>
                 {
-                    _imageManager.AddImage(StrollerProcessor.ParseStrollerFile(file.OpenReadStream(), file.FileName));
+                    _imageManager.AddImage(StrollerConverter.JsonStreamToStrollerFileInfo(file.OpenReadStream(), file.FileName));
                 });
             }
             catch (System.Exception e)
@@ -87,12 +122,34 @@ namespace ThreesixtyService.Controllers
             return null;
         }
 
-        
+
         // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
             throw new ApiException("Feature not supported yet", HttpStatusCode.Forbidden);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                foreach (var downloadedFile in _downloadedFiles)
+                {
+                    try
+                    {
+                        System.IO.File.Delete(downloadedFile);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Console.WriteLine("Unable to remove file: '" + downloadedFile + "'");
+                        Console.WriteLine(e);
+                    }
+                }
+                _downloadedFiles = null;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

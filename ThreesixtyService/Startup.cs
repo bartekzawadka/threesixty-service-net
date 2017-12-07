@@ -42,8 +42,8 @@ namespace ThreesixtyService
             }
 
             app.UseMiddleware(typeof(ExceptionMiddleware));
-            app.Use(next => context => { context.Request.EnableRewind(); return next(context); });
-            app.UseCors(options => options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader());
+            //app.Use(next => context => { context.Request.EnableRewind(); return next(context); });
+            app.UseCors(options => options.WithOrigins("*").AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("Content-Disposition"));
             app.UseMvc();
         }
     }
