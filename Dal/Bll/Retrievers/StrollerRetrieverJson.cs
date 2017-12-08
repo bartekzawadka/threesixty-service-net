@@ -1,20 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Threesixty.Common.Contracts.Dto.Stroller;
 
 namespace Threesixty.Dal.Bll.Retrievers
 {
-    public class StrollerRetrieverJson : StrollerRetriever
+    public class StrollerRetrieverJson : IStrollerRetriever
     {
-        public StrollerRetrieverJson(ImageManager imageManager, ChunkManager chunkManager) : base(imageManager, chunkManager)
-        {
-        }
-
-        protected override string BuildFile(StrollerFileInfo strollerFileInfo)
+        public string GetFile(StrollerFileInfo strollerFileInfo)
         {
             var json = new JObject();
             if (!string.IsNullOrEmpty(strollerFileInfo.Name))

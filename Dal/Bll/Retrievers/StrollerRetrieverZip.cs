@@ -9,13 +9,9 @@ using Threesixty.Dal.Bll.Helpers;
 
 namespace Threesixty.Dal.Bll.Retrievers
 {
-    public class StrollerRetrieverZip : StrollerRetriever
+    public class StrollerRetrieverZip : IStrollerRetriever
     {
-        public StrollerRetrieverZip(ImageManager imageManager, ChunkManager chunkManager) : base(imageManager, chunkManager)
-        {
-        }
-
-        protected override string BuildFile(StrollerFileInfo strollerFileInfo)
+        public string GetFile(StrollerFileInfo strollerFileInfo)
         {
             var tmpDir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString()));
             try
