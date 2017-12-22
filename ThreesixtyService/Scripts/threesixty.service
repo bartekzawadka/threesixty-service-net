@@ -1,0 +1,15 @@
+[Unit]
+Description=Threesixty Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/dotnet ./bin/Release/netcoreapp2.0/ThreesixtyService.dll
+WorkingDirectory=/srv/threesixty-service-net/ThreesixtyService/
+Restart=always
+RestartSec=10
+User=bzawadka
+SyslogIdentifier=threesixty-service
+Environment=ASPNETCORE_ENVIRONMENT=Production;HOME=/srv/threesixty-service-net/ThreesixtyService/bin/Release/netcoreapp2.0;NUGET_PACKAGES=/home/bzawadka/.nuget/packages;NUGET_HTTP_CACHE_PATH=/home/bzawadka/.local/share/NuGet/v3-cache
+
+[Install]
+WantedBy=multi-user.target
