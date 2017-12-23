@@ -2,10 +2,9 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Threesixty.Common.Contracts;
-using Threesixty.Dal.Dll;
-using Threesixty.Dal.Dll.Models;
+using Threesixty.Common.Contracts.Models;
 
-namespace Threesixty.Dal.Bll
+namespace Threesixty.Dal.Bll.Managers
 {
     public class ChunkManager : Manager
     {

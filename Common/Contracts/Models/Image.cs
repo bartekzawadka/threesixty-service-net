@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Threesixty.Dal.Dll.Models
+namespace Threesixty.Common.Contracts.Models
 {
     public class Image
     {

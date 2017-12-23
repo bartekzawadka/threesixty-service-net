@@ -1,40 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Threesixty.Common.Contracts;
 using Threesixty.Common.Contracts.Dto;
-using Threesixty.Dal.Bll;
+using Threesixty.Common.Contracts.Models;
 using Threesixty.Dal.Bll.Converters;
+using Threesixty.Dal.Bll.Managers;
 using Threesixty.Dal.Bll.Mappers;
-using Threesixty.Dal.Dll;
-using Threesixty.Dal.Dll.Models;
-using System.Net.Http.Headers;
-using System.Net.Mime;
-using ThreesixtyService.Helpers;
 
 namespace ThreesixtyService.Controllers
 {
     [Route("api/[controller]")]
-    public class ImageController : Controller
+    public class ImageController : ControllerBase
     {
         public IConfiguration Configuration { get; }
 
-        private ImageManager _imageManager;
+        private readonly ImageManager _imageManager;
 
-        public List<string> _downloadedFiles = new List<string>();
+        private List<string> _downloadedFiles = new List<string>();
 
-        public ImageController(IConfiguration configuration)
+//        [HttpPost]
+//        [Route("token")]
+//        [AllowAnonymous]
+//        public async Task<IActionResult> Token([FromBody] User user)
+//        {
+//            if (!ModelState.IsValid)
+//                return BadRequest();
+//
+//            var _userManager = new UserManager(new DbContextOptionsBuilder<ThreesixtyContext>().UseMySql(Configuration.GetConnectionString("DefaultConnection")).Options);
+//            var i = _userManager.AddUser(user.Username, user.Fullname, user.Password);
+//
+//            return Ok(i);
+//        }
+
+        public ImageController(IConfiguration configuration) : base(configuration)
         {
             Configuration = configuration;
-            _imageManager = new ImageManager(new DbContextOptionsBuilder<ThreesixtyContext>().UseMySql(Configuration.GetConnectionString("DefaultConnection")).Options);
+            _imageManager = new ImageManager(ContextOptions);
         }
 
         // GET: api/Image
@@ -124,6 +131,7 @@ namespace ThreesixtyService.Controllers
 
 
         // DELETE: api/ApiWithActions/5
+        [Authorize]
         [HttpDelete("{id}")]
         public void Delete(int id)
         {

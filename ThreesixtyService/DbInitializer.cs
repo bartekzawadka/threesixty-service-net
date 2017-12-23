@@ -1,4 +1,4 @@
-﻿using Threesixty.Dal.Dll;
+﻿using Threesixty.Dal.Bll;
 
 namespace ThreesixtyService
 {

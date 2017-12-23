@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Threesixty.Common.Contracts;
+using Threesixty.Common.Contracts.Models;
 using Threesixty.Dal.Bll;
-using Threesixty.Dal.Dll;
-using Threesixty.Dal.Dll.Models;
+using Threesixty.Dal.Bll.Managers;
 
 namespace ThreesixtyService.Controllers
 {

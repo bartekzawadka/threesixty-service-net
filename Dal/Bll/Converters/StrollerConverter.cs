@@ -6,8 +6,8 @@ using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Threesixty.Common.Contracts;
+using Threesixty.Common.Contracts.Models;
 using Threesixty.Common.Contracts.Dto.Stroller;
-using Threesixty.Dal.Dll.Models;
 
 namespace Threesixty.Dal.Bll.Converters
 {

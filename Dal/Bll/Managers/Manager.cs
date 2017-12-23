@@ -1,8 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
-using Threesixty.Dal.Dll;
 
-namespace Threesixty.Dal.Bll
+namespace Threesixty.Dal.Bll.Managers
 {
     public abstract class Manager
     {

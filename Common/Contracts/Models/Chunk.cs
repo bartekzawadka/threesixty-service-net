@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace Threesixty.Dal.Dll.Models
+namespace Threesixty.Common.Contracts.Models
 {
     public class Chunk
     {

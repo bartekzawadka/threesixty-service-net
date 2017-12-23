@@ -9,10 +9,9 @@ using Threesixty.Common.Contracts.Dto;
 using Threesixty.Common.Contracts.Dto.Stroller;
 using Threesixty.Common.Contracts.Enums;
 using Threesixty.Dal.Bll.Retrievers;
-using Threesixty.Dal.Dll;
-using Threesixty.Dal.Dll.Models;
+using Threesixty.Common.Contracts.Models;
 
-namespace Threesixty.Dal.Bll
+namespace Threesixty.Dal.Bll.Managers
 {
     public class ImageManager : Manager
     {
