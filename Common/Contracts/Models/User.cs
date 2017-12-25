@@ -1,10 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
+using Threesixty.Common.Contracts.Interfaces;
 
 namespace Threesixty.Common.Contracts.Models
 {
-    public class User
+    public class User : IIdentifier<int>
     {
         [Key]
         public int Id { get; set; }

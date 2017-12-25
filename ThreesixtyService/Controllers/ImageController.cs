@@ -5,12 +5,10 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Threesixty.Common.Contracts;
 using Threesixty.Common.Contracts.Dto;
 using Threesixty.Common.Contracts.Models;
-using Threesixty.Dal.Bll;
 using Threesixty.Dal.Bll.Converters;
 using Threesixty.Dal.Bll.Managers;
 using Threesixty.Dal.Bll.Mappers;
@@ -25,20 +23,6 @@ namespace ThreesixtyService.Controllers
         private readonly ImageManager _imageManager;
 
         private List<string> _downloadedFiles = new List<string>();
-
-        [HttpPost]
-        [Route("token")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Token([FromBody] User user)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest();
-
-            var _userManager = new UserManager(new DbContextOptionsBuilder<ThreesixtyContext>().UseMySql(Configuration.GetConnectionString("DefaultConnection")).Options);
-            var i = _userManager.AddUser(user.Username, user.Fullname, user.Password);
-
-            return Ok(i);
-        }
 
         public ImageController(IConfiguration configuration) : base(configuration)
         {

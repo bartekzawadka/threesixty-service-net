@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Threesixty.Common.Contracts.Interfaces;
 
 namespace Threesixty.Common.Contracts.Models
 {
-    public class Chunk
+    public class Chunk : IIdentifier<int>
     {
         public int Id { get; set; }
         public int ImageId { get; set; }

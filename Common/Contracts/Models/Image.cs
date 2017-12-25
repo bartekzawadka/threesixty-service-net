@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Threesixty.Common.Contracts.Interfaces;
 
 namespace Threesixty.Common.Contracts.Models
 {
-    public class Image
+    public class Image : IIdentifier<int>
     {
         public int Id { get; set; }
         public string Name { get; set; }

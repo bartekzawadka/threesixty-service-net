@@ -5,6 +5,7 @@ using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Threesixty.Common.Contracts;
 using Threesixty.Common.Contracts.Dto;
+using Threesixty.Common.Contracts.Dto.User;
 using Threesixty.Common.Contracts.Models;
 
 namespace Threesixty.Dal.Bll.Managers
@@ -15,27 +16,14 @@ namespace Threesixty.Dal.Bll.Managers
         {
         }
 
-        public int AddUser(string userName, string fullName, string password)
+        public int AddUser(RegisterInfo registerInfo)
         {
-            if (string.IsNullOrEmpty(userName))
-                throw new ArgumentNullException(nameof(userName), "User name was not provided");
-            if (string.IsNullOrEmpty(fullName))
-                throw new ArgumentNullException(nameof(fullName), "User full name was not provided");
-            if (string.IsNullOrEmpty(password))
-                throw new ArgumentNullException(nameof(password), "User password was not provided");
-
-            var user = new User
-            {
-                Fullname = fullName,
-                Password = CryptoUtils.CalculateHash(password),
-                Username = userName,
-                CreatedAt = DateTime.Now
-            };
+            var user = CreateUser(registerInfo);
 
             return ExecuteDb(db =>
             {
-                if (db.Users.Any(x => x.Username == userName))
-                    throw new ApiException("User '" + userName + "' already exists", HttpStatusCode.Conflict);
+                if (db.Users.Any(x => x.Username == user.Username))
+                    throw new ApiException("User '" + user.Username + "' already exists", HttpStatusCode.Conflict);
 
                 db.Users.Add(user);
                 db.SaveChanges();
@@ -44,14 +32,26 @@ namespace Threesixty.Dal.Bll.Managers
             });
         }
 
-        public static User CreateUser(string username, string fullName, string password)
+        public static User CreateUser(RegisterInfo registerInfo)
         {
+            if(registerInfo == null)
+                throw new ApiException("Invalid user data. No data received", HttpStatusCode.BadRequest);
+
+            if (!registerInfo.IsValid())
+            {
+                throw new ApiException("Invalid user data. User info is not complete", HttpStatusCode.BadRequest);
+            }
+
+            if (!Equals(CryptoUtils.CalculateHash(registerInfo.Password),
+                CryptoUtils.CalculateHash(registerInfo.PasswordConfirm)))
+                throw new ApiException("User password mismatch", HttpStatusCode.Forbidden);
+
             return new User
             {
-                Fullname = fullName,
-                Username = username,
+                Fullname = registerInfo.Fullname,
+                Username = registerInfo.Username,
                 CreatedAt = DateTime.Now,
-                Password = CryptoUtils.CalculateHash(password)
+                Password = CryptoUtils.CalculateHash(registerInfo.Password)
             };
         }
 
@@ -69,15 +69,77 @@ namespace Threesixty.Dal.Bll.Managers
             });
         }
 
+        private User GetUser(string userName, bool includePassword = false)
+        {
+            return ExecuteDb(db =>
+            {
+                var query = db.Users.Where(x => x.Username == userName);
+                if (includePassword)
+                {
+                    query = query.Select(x => new User
+                    {
+                        Id = x.Id,
+                        Username = x.Username,
+                        CreatedAt = x.CreatedAt,
+                        Fullname = x.Fullname,
+                        Password = x.Password
+                    });
+                }
+                else
+                {
+                    query = query.Select(x => new User
+                    {
+                        Id = x.Id,
+                        Username = x.Username,
+                        CreatedAt = x.CreatedAt,
+                        Fullname = x.Fullname
+                    });
+                }
+
+                var user = query.SingleOrDefault();
+
+                if (user == null)
+                {
+                    throw new ApiException("User '" + userName + "' does not exist", HttpStatusCode.NotFound);
+                }
+
+                return user;
+            });
+        }
+
         public User GetUser(string userName)
         {
-            return ExecuteDb(db => db.Users.Where(x => x.Username == userName).Select(x => new User
+            return GetUser(userName, false);
+        }
+
+        public void RemoveUser(string username)
+        {
+            ExecuteDb(db =>
             {
-                Id = x.Id,
-                Username = x.Username,
-                CreatedAt = x.CreatedAt,
-                Fullname = x.Fullname
-            }).SingleOrDefault());
+                var user = GetUser(username);
+                if (user == null)
+                {
+                    throw new ApiException("User '" + username + "' does not exist", HttpStatusCode.NotFound);
+                }
+
+                db.Entry(user).State = EntityState.Deleted;
+
+                return true;
+            });
+        }
+
+        public void ChangePassword(string username, string oldPassword, string newPassword)
+        {
+            ExecuteDb(db =>
+            {
+                var user = GetUser(username, true);
+
+                if (!Equals(user.Password, CryptoUtils.CalculateHash(oldPassword)))
+                    throw new ApiException("Invalid old password", HttpStatusCode.Unauthorized);
+
+                user.Password = CryptoUtils.CalculateHash(newPassword);
+                return true;
+            });
         }
 
         public AuthenticationResult Authenticate(string username, string password)
