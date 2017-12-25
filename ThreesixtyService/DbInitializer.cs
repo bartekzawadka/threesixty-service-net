@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Threesixty.Common.Contracts.Models;
 using Threesixty.Dal.Bll;
 using Threesixty.Dal.Bll.Managers;
@@ -12,9 +13,11 @@ namespace ThreesixtyService
             context.Database.EnsureCreated();
 
             // Adding first user
-
-            var user = UserManager.CreateUser("admin", "Admin", "admin123");
-            context.Users.Add(user);
+            if (!context.Users.Any())
+            {
+                var user = UserManager.CreateUser("admin", "Admin", "admin123");
+                context.Users.Add(user);
+            }
 
             context.SaveChanges();
         }
