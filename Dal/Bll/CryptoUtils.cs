@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -6,8 +7,10 @@ namespace Threesixty.Dal.Bll
 {
     public class CryptoUtils
     {
+        private static string _phrase = "what is love? baby Dont Hurt M3!";
+
         // some random bytes 
-        private static readonly byte[] SaltBytes = { 125, 83, 184, 8 };
+        public static readonly byte[] SaltBytes = Encoding.UTF8.GetBytes(_phrase);
 
         public static string CalculateHash(string data)
         {

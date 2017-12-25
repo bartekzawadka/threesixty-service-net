@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Threesixty.Dal.Bll;
 using ThreesixtyService.Exception;
+using ThreesixtyService.Helpers;
 
 namespace ThreesixtyService
 {
@@ -23,21 +24,22 @@ namespace ThreesixtyService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var domain = $"http://localhost:5000/";
-
             services.AddCors();
             services.AddDbContext<ThreesixtyContext>(options =>
                 options.UseMySql(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddAuthentication(options =>
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-                options.Authority = domain;
-                options.Audience = "1234";
-                options.RequireHttpsMetadata = false;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = AuthHelper.GetSecurityKey()
+                };
             });
+
             services.AddMvc().AddJsonOptions(options =>
             {
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;

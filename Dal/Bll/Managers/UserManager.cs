@@ -6,9 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Threesixty.Common.Contracts;
 using Threesixty.Common.Contracts.Dto;
 using Threesixty.Common.Contracts.Models;
-using Threesixty.Dal.Bll.Managers;
 
-namespace Threesixty.Dal.Bll
+namespace Threesixty.Dal.Bll.Managers
 {
     public class UserManager: Manager
     {
@@ -43,6 +42,17 @@ namespace Threesixty.Dal.Bll
 
                 return user.Id;
             });
+        }
+
+        public static User CreateUser(string username, string fullName, string password)
+        {
+            return new User
+            {
+                Fullname = fullName,
+                Username = username,
+                CreatedAt = DateTime.Now,
+                Password = CryptoUtils.CalculateHash(password)
+            };
         }
 
         public List<User> GetUsers()
@@ -87,9 +97,19 @@ namespace Threesixty.Dal.Bll
                 if (user == null)
                     return new AuthenticationResult(false, "User '" + username + "' could not be found");
 
-                return string.Equals(user.Password, CryptoUtils.CalculateHash(password))
-                    ? new AuthenticationResult(true, string.Empty)
-                    : new AuthenticationResult(false, "Invalid password");
+                if (string.Equals(user.Password, CryptoUtils.CalculateHash(password)))
+                {
+                    var result = new AuthenticationResult(true, string.Empty);
+                    result.SetUser(new User
+                    {
+                        CreatedAt = user.CreatedAt,
+                        Username = user.Username,
+                        Fullname = user.Fullname,
+                        Id = user.Id
+                    });
+                    return result;
+                }
+                return new AuthenticationResult(false, "Invalid password");
             });
         }
     }
