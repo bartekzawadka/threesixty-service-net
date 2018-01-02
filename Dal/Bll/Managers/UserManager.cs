@@ -135,9 +135,10 @@ namespace Threesixty.Dal.Bll.Managers
                 var user = GetUser(username, true);
 
                 if (!Equals(user.Password, CryptoUtils.CalculateHash(oldPassword)))
-                    throw new ApiException("Invalid old password", HttpStatusCode.Unauthorized);
+                    throw new ApiException("Invalid password", HttpStatusCode.BadRequest);
 
                 user.Password = CryptoUtils.CalculateHash(newPassword);
+                db.Entry(user).State = EntityState.Modified;
                 return true;
             });
         }

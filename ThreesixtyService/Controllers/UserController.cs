@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
@@ -39,6 +40,17 @@ namespace ThreesixtyService.Controllers
             return _userManager.GetUser(username);
         }
 
+        [HttpGet("refreshToken")]
+        [Authorize]
+        public IActionResult RefreshToken()
+        {
+            var claims = User.Claims.ToArray();
+            var username = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+            var fullname = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Surname)?.Value;
+
+            return _ReturnToken(claims, username, fullname);
+        }
+
         [HttpPost("token")]
         public IActionResult Authenticate([FromBody] LoginInfo loingInfo)
         {
@@ -57,10 +69,7 @@ namespace ThreesixtyService.Controllers
                 new Claim(ClaimTypes.Surname, result.User.Fullname)
             };
 
-            return Ok(new
-            {
-                token = AuthHelper.BuildToken(claims)
-            });
+            return _ReturnToken(claims, result.User.Username, result.User.Fullname);
         }
 
         [HttpPost("add")]
@@ -108,6 +117,22 @@ namespace ThreesixtyService.Controllers
                 changePasswordInfo.Password);
 
             return Ok();
+        }
+
+        private IActionResult _ReturnToken(IEnumerable<Claim> claims, string username, string fullname)
+        {
+            var token = AuthHelper.BuildToken(claims);
+            
+            return Ok(new
+            {
+                token = token.Token,
+                expires = token.Expires,
+                user = new
+                {
+                    username,
+                    fullname
+                }
+            });
         }
     }
 }
