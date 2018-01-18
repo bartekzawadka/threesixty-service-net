@@ -54,6 +54,11 @@ namespace ThreesixtyService.Controllers
         [HttpPost("token")]
         public IActionResult Authenticate([FromBody] LoginInfo loingInfo)
         {
+            if (loingInfo == null)
+            {
+                throw new ApiException("No user details provided", HttpStatusCode.BadRequest);
+            }
+            
             var result = _userManager.Authenticate(loingInfo.Username, loingInfo.Password);
             if (!result.Success)
             {
@@ -68,6 +73,8 @@ namespace ThreesixtyService.Controllers
                 new Claim(ClaimTypes.Name, result.User.Username),
                 new Claim(ClaimTypes.Surname, result.User.Fullname)
             };
+            
+            
 
             return _ReturnToken(claims, result.User.Username, result.User.Fullname);
         }

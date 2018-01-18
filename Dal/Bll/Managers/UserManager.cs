@@ -11,7 +11,7 @@ using Threesixty.Common.Contracts.Models;
 namespace Threesixty.Dal.Bll.Managers
 {
     public class UserManager: Manager
-    {
+    {       
         public UserManager(DbContextOptions<ThreesixtyContext> options) : base(options)
         {
         }
@@ -55,7 +55,7 @@ namespace Threesixty.Dal.Bll.Managers
             };
         }
 
-        public List<User> GetUsers()
+        public IEnumerable<User> GetUsers()
         {
             return ExecuteDb(db =>
             {
@@ -82,7 +82,8 @@ namespace Threesixty.Dal.Bll.Managers
                         Username = x.Username,
                         CreatedAt = x.CreatedAt,
                         Fullname = x.Fullname,
-                        Password = x.Password
+                        Password = x.Password,
+                        LastLogin = x.LastLogin
                     });
                 }
                 else
@@ -92,7 +93,8 @@ namespace Threesixty.Dal.Bll.Managers
                         Id = x.Id,
                         Username = x.Username,
                         CreatedAt = x.CreatedAt,
-                        Fullname = x.Fullname
+                        Fullname = x.Fullname,
+                        LastLogin = x.LastLogin
                     });
                 }
 
@@ -155,24 +157,26 @@ namespace Threesixty.Dal.Bll.Managers
             }
 
             return ExecuteDb(db =>
-            {
+            {              
                 var user = db.Users.FirstOrDefault(x => x.Username == username);
                 if (user == null)
                     return new AuthenticationResult(false, "User '" + username + "' could not be found");
 
-                if (string.Equals(user.Password, CryptoUtils.CalculateHash(password)))
+                if (!string.Equals(user.Password, CryptoUtils.CalculateHash(password)))
+                    return new AuthenticationResult(false, "Invalid password");
+                user.LastLogin = DateTime.Now;
+                db.Entry(user).State = EntityState.Modified;
+                    
+                var result = new AuthenticationResult(true, string.Empty);
+                result.SetUser(new User
                 {
-                    var result = new AuthenticationResult(true, string.Empty);
-                    result.SetUser(new User
-                    {
-                        CreatedAt = user.CreatedAt,
-                        Username = user.Username,
-                        Fullname = user.Fullname,
-                        Id = user.Id
-                    });
-                    return result;
-                }
-                return new AuthenticationResult(false, "Invalid password");
+                    CreatedAt = user.CreatedAt,
+                    Username = user.Username,
+                    Fullname = user.Fullname,
+                    LastLogin = user.LastLogin,
+                    Id = user.Id
+                });
+                return result;
             });
         }
     }

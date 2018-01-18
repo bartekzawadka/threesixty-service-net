@@ -20,5 +20,7 @@ namespace Threesixty.Common.Contracts.Models
 
         [Required]
         public DateTime CreatedAt { get; set; }
+        
+        public DateTime? LastLogin { get; set; }
     }
 }
